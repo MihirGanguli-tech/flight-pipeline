@@ -2,6 +2,8 @@ import time
 import requests
 from ingestion.opensky_client import TokenManager
 from datetime import datetime, timedelta
+import boto3
+import json
 
 tokens = TokenManager()
 
@@ -59,7 +61,30 @@ def lambda_handler(event, context):
     
     print("live flights:", len(all_flights))
     print("arrivals:", len(arrivals))
-    print("departures:", len(departures))   
+    print("departures:", len(departures)) 
+
+    s3_client = boto3.client("s3")
+
+    s3_client.put_object(
+        Bucket="mihir-opensky-bucket",
+        Key=f"raw/all_flights/{datetime.now().strftime('%Y-%m-%d-%H-%M')}.json",
+        Body=json.dumps(all_flights)
+    )
+
+    s3_client.put_object(
+        Bucket="mihir-opensky-bucket",
+        Key=f"raw/arrivals/{yesterday.strftime('%Y-%m-%d')}.json",
+        Body=json.dumps(arrivals)
+    )
+
+    s3_client.put_object(
+        Bucket="mihir-opensky-bucket",
+        Key=f"raw/departures/{yesterday.strftime('%Y-%m-%d')}.json",
+        Body=json.dumps(departures)
+        )
+    
+
+ 
         
 if __name__ == "__main__":
     lambda_handler(None, None)
