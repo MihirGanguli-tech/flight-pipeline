@@ -4,7 +4,7 @@ import urllib.parse
 import json
 import boto3
 import os
-from ingestion.opensky_client import TokenManager
+from opensky_client import TokenManager
 from datetime import datetime, timedelta
 
 tokens = TokenManager()

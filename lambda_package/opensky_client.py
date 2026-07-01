@@ -4,8 +4,6 @@ import json
 from datetime import datetime, timedelta
 import time
 import os
-from dotenv import load_dotenv
-load_dotenv()
 
 TOKEN_URL = "https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token"
 CLIENT_ID = os.getenv("OPENSKY_CLIENT_ID")
