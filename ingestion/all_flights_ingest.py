@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 
 tokens = TokenManager()
 
+# 8 most busy US airports
 airports = ["KDEN", "KLAX", "KJFK", "KIAD", "KDFW", "KORD", "KATL", "KMIA"]
 
 def fetch(url, headers, params):
@@ -17,6 +18,7 @@ def fetch(url, headers, params):
     with urllib.request.urlopen(req) as r:
         return json.loads(r.read().decode())
 
+#Entry point for AWS lambda
 def lambda_handler(event, context):
     yesterday = datetime.now() - timedelta(days=1)
     day_start = int(datetime(yesterday.year, yesterday.month, yesterday.day, 0, 0, 0).timestamp())
@@ -31,24 +33,10 @@ def lambda_handler(event, context):
         {"begin": begin, "end": end}
     )
 
-    arrivals = []
-    departures = []
-
-    for airport in airports:
-        arrivals.append(fetch(
-            "https://opensky-network.org/api/flights/arrival",
-            tokens.headers(),
-            {"airport": airport, "begin": day_start, "end": day_end}
-        ))
-        departures.append(fetch(
-            "https://opensky-network.org/api/flights/departure",
-            tokens.headers(),
-            {"airport": airport, "begin": day_start, "end": day_end}
-        ))
+    
 
     print("live flights:", len(all_flights))
-    print("arrivals:", len(arrivals))
-    print("departures:", len(departures))
+ 
 
     s3_client = boto3.client("s3")
 
@@ -58,17 +46,6 @@ def lambda_handler(event, context):
         Body='\n'.join(json.dumps(flight) for flight in all_flights)
     )
 
-    s3_client.put_object(
-        Bucket="mihir-opensky-bucket",
-        Key=f"raw/arrivals/{yesterday.strftime('%Y-%m-%d')}.json",
-        Body='\n'.join(json.dumps(flight) for airport in arrivals for flight in airport)
-    )
-
-    s3_client.put_object(
-        Bucket="mihir-opensky-bucket",
-        Key=f"raw/departures/{yesterday.strftime('%Y-%m-%d')}.json",
-        Body='\n'.join(json.dumps(flight) for airport in departures for flight in airport)
-    )
 
 if __name__ == "__main__":
     lambda_handler(None, None)
