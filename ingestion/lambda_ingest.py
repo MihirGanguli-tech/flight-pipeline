@@ -54,7 +54,7 @@ def lambda_handler(event, context):
 
     s3_client.put_object(
         Bucket="mihir-opensky-bucket",
-        Key=f"raw/all_flights/{datetime.now().strftime('%Y-%m-%d-%H-%M')}.json",
+        Key=f"raw/all_flights/latest_flights.json",
         Body='\n'.join(json.dumps(flight) for flight in all_flights)
     )
 
