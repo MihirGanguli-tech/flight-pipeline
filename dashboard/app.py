@@ -3,6 +3,21 @@ import streamlit as st
 import pandas as pd
 import awswrangler as wr
 import plotly.express as px
+import boto3
+import json
+
+
+#retrieve timestamps from OpenSky bucket for most recent update for all flights and arrivals/departures
+s3 = boto3.client("s3")
+last_updated_flights_timestamp = s3.get_object(Bucket="mihir-opensky-bucket", Key="raw/last_updated_flights.json")
+last_updated_flights = json.loads(last_updated_flights_timestamp["Body"].read())["last_updated_flights"]
+
+last_updated_arrivals_departures_timestamp = s3.get_object(Bucket="mihir-opensky-bucket", Key="raw/last_updated_arrivals_departures.json")
+last_updated_arrivals_departures = json.loads(last_updated_arrivals_departures_timestamp["Body"].read())["last_updated_arrivals_departures"]
+
+st.caption(f"All flights last updated: {last_updated_flights}")
+st.caption(f"Arrivals/Departures last updated: {last_updated_arrivals_departures}")
+
 
 
 
@@ -70,13 +85,13 @@ st.plotly_chart(fig)
 
 
 df_routes = run_query("""
-        SELECT CONCAT(estarrivalairport, '->', estdepartureairport) as route,  COUNT(*) as numFlights
+        SELECT CONCAT(estarrivalairport, '->', estdepartureairport) as Route, COUNT(*) as "Number of Flights"
         FROM arrivals
         WHERE estdepartureairport IS NOT NULL
         AND estarrivalairport IS NOT NULL
         AND estarrivalairport != estdepartureairport
         GROUP BY estdepartureairport, estarrivalairport
-        ORDER BY numFlights DESC
+        ORDER BY "Number of Flights" DESC
         LIMIT 10;                             
 """)
 st.write(df_routes)
