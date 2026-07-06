@@ -24,7 +24,9 @@ def lambda_handler(event, context):
     day_start = int(datetime(yesterday.year, yesterday.month, yesterday.day, 0, 0, 0).timestamp())
     day_end = int(datetime(yesterday.year, yesterday.month, yesterday.day, 23, 59, 59).timestamp())
 
+    #current time 
     end = int(time.time())
+    #2 hrs previous timestamp
     begin = end - 7200
 
     all_flights = fetch(
@@ -43,7 +45,13 @@ def lambda_handler(event, context):
     s3_client.put_object(
         Bucket="mihir-opensky-bucket",
         Key=f"raw/all_flights/latest_flights.json",
-        Body='\n'.join(json.dumps(flight) for flight in all_flights)
+        Body='\n'.join(json.dumps(flight) for flight in all_flights) # new line for each live flight 
+    )
+    #All flights last updated timestamp; will be displayed in dashboard
+    s3_client.put_object(
+    Bucket="mihir-opensky-bucket",
+    Key="raw/last_updated_flights.json",
+    Body=json.dumps({"last_updated_flights": datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
     )
 
 

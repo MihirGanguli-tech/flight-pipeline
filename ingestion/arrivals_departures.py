@@ -50,5 +50,11 @@ def lambda_handler(event, context):
         Body='\n'.join(json.dumps(flight) for airport in departures for flight in airport)
     )
 
+    s3_client.put_object(
+    Bucket="mihir-opensky-bucket",
+    Key="raw/last_updated_arrivals_departures.json",
+    Body=json.dumps({"last_updated_arrivals_departures": datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
+    )
+
 if __name__ == "__main__":
     lambda_handler(None, None)
